@@ -37,6 +37,7 @@ jobs:
           gpg_signing_key: "${{ secrets.GPG_SIGNING_KEY }}"
           max_download_retries: 10
           download_retry_wait: 30
+          downloader: curl
           from_metadatas: ""
           github_token: ${{ secrets.GITHUB_TOKEN }}
           github_username: ${{ github.actor }}
