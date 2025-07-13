@@ -1,17 +1,15 @@
 name: Deploy github pages for repo
 
 on:
-  schedule:
-    - cron: "0 6 15 * *"
-  push:
-    branches:
-      - main
-    tags:
-      - "*"
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
+
+env:
+  REF: ${{ github.ref }}
+  AUTHOR: ${{ secrets.RELEASE_USERNAME }}
+  PAT: ${{ secrets.RELEASE_TOKEN }}
+  ORG: Ananda-Aropa
+  BRANCH: devel
+  WORKFLOW: build_deb.yml
 
 jobs:
   build-and-deploy:
@@ -31,25 +29,31 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Build repository
-        uses: DevChall-by-SDCY-and-VXM/build-deb-repo@main
+        uses: Ananda-Aropa/build-deb-repo@devel
         with:
-          label: BlissOS debian repo
+          label: Ananda-Aropa debian repo
           origin: blisslabs.org
-          desc: BlissOS Debian buildiso repo
+          desc: Ananda-Aropa Debian repo
           gpg_signing_key: "${{ secrets.GPG_SIGNING_KEY }}"
           max_download_retries: 10
           download_retry_wait: 30
-          from_metadatas: |
-            https://github.com/BlissOS/aaropa_busybox/releases/latest/download
-            https://github.com/BlissOS/grub2-themes/releases/latest/download
-            https://github.com/shadichy/patches-calamares-blissos/releases/latest/download
-            https://github.com/shadichy/calamares_branding_blissos/releases/latest/download
-            https://github.com/shadichy/android-tools/releases/latest/download
-            https://github.com/shadichy/grub-android-x86/releases/latest/download
-            https://github.com/shadichy/refind-files-i386/releases/latest/download
-            https://github.com/shadichy/efifs-debian/releases/latest/download
-            https://github.com/shadichy/linux-zenith/releases/latest/download
-            https://github.com/shadichy/initrd-aaropa-linux/releases/latest/download
+          from_metadatas: ""
+          from_github_actions: |
+            ${{ env.ORG }}/grub-android-prober@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/grub2-themes@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/efifs-debian@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/refind-files-i386@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/aaropa_busybox@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/aaropa_calamares@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/aaropa_calamares_modules_bass@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/calamares_branding_bassos@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/calamares_branding_blissos@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/calamares_branding_lineageos@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/aaropa_keyring@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/android-tools@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/clang-android-debian@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/linux-zenith@${{ env.BRANCH }}:${{ env.WORKFLOW }}
+            ${{ env.ORG }}/initrd-aaropa-linux@${{ env.BRANCH }}:${{ env.WORKFLOW }}
       
       - name: Extract artifact
         run: unzip -o dist.zip
@@ -62,3 +66,15 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Trigger Workflow after deployment
+        uses: convictional/trigger-workflow-and-wait@v1.6.5
+        with:
+          owner: Ananda-Aropa
+          repo: aaropa_rootfs_base
+          github_token: ${{ env.PAT }}
+          github_user: ${{ env.AUTHOR }}
+          workflow_file_name: build_rootfs.yml
+          ref: latest
+          trigger_workflow: true
+          wait_workflow: false
