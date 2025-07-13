@@ -38,6 +38,8 @@ jobs:
           max_download_retries: 10
           download_retry_wait: 30
           from_metadatas: ""
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
           from_github_actions: |
             ${{ env.ORG }}/grub-android-prober@${{ env.BRANCH }}:${{ env.WORKFLOW }}
             ${{ env.ORG }}/grub2-themes@${{ env.BRANCH }}:${{ env.WORKFLOW }}
